@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Api(description = "API pour es opérations CRUD sur les produits.")
@@ -31,29 +32,24 @@ public class ProductController {
     private ProductDao productDao;
 
 
-//    {
-//        "Product{id=1, nom='Ordinateur portable', prix=350}": 230,
-//            "Product{id=2, nom='Aspirateur Robot', prix=500}": 300,
-//            "Product{id=3, nom='Table de Ping Pong', prix=750}": 350
-//    }
-
     @ApiOperation(value = "Calcul la marge de chaque produit")
-    @GetMapping(value = "/AdminProduits")
-    public Map<String, Float> calculerMargeProduit () {
-
-        List<Product> products = productDao.findAll();
-
-        Map<String, Float> margeProduit = new HashMap<String, Float>();
-
-        for (Product product : products) {
-            margeProduit.put(product.toString(), this.calculMargeProduit(product));
-        }
-
-        return margeProduit;
+    @GetMapping(value = "/AdminProduits/marge")
+    public Map<String, Integer> calculerMargeProduit() {
+        return productDao
+                .findAll()
+                .stream()
+                .collect(Collectors.toMap(
+                        Product::toString,
+                        product -> product.getPrix() - product.getPrixAchat()
+                        )
+                );
     }
 
-    private float calculMargeProduit(Product product){
-        return product.getPrix() - product.getPrixAchat();
+    @ApiOperation(value = "Trier les produits par ordre alphabétique")
+    @GetMapping(value = "/AdminProduits/tri")
+    public List<Product> trierProduitsParOrdreAlphabetique(){
+
+        return productDao.findAllByOrderByNomAsc();
     }
 
     //Récupérer la liste des produits
